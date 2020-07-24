@@ -1,15 +1,13 @@
-import numpy as np
-import torchvision
-from torchvision import datasets, transforms, models
+import copy
+import os
+import shutil
+import time
+from PIL import Image
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
-import torch.optim as optim
-from torchvision import datasets, transforms
-import matplotlib.pyplot as plt
-import time
-import os
-import copy
+import torchvision
+from torchvision import models
+from torchvision import transforms
 
 
 def set_parameter_requires_grad(model, feature_extracting):
@@ -31,10 +29,9 @@ def initialize_model(model_name, num_classes, feature_extract, use_pretrained=Tr
     return model_ft, input_size
 
 
-def train_model(model, dataloaders, criterion, optimizer, num_epochs=5, log_interval=5):
+def train_model(model, dataloaders, criterion, optimizer, num_epochs=5, log_interval=20):
     since = time.time()
     val_acc_history = []
-    best_model_wts = copy.deepcopy(model.state_dict())
     best_acc = 0.
     for epoch in range(num_epochs):
         print("Epoch {}/{}".format(epoch, num_epochs - 1))
@@ -83,7 +80,6 @@ def train_model(model, dataloaders, criterion, optimizer, num_epochs=5, log_inte
 
 
 def test_model(model, dataloaders, criterion, epoch):
-    best_model_wts = copy.deepcopy(model.state_dict())
     running_loss = 0.
     running_corrects = 0.
     model.eval()
@@ -101,5 +97,45 @@ def test_model(model, dataloaders, criterion, epoch):
     time_elapsed = time.time() - since
     print("Training compete in {}m   {}s".format(time_elapsed // 60, time_elapsed % 60))
     print("{} Loss: {} Acc: {}".format('val', epoch_loss, epoch_acc))
-    model.load_state_dict(best_model_wts)
+    # model.load_state_dict(best_model_wts)
     return epoch_loss, epoch_acc
+
+def work_model(model, data_dir, input_size):
+    result_path = data_dir + '/result/'
+    if os.path.exists(result_path):
+        shutil.rmtree(result_path)
+    os.mkdir(result_path)
+    os.mkdir(result_path + '/Dog')
+    os.mkdir(result_path + '/Cat')
+    test_path = data_dir + '/test/'
+    for name in os.listdir(test_path):
+        image_name = test_path + name
+        image = loader(image_name, input_size)
+        outputs = model(image)
+        _, preds = torch.max(outputs, 1)
+        if preds == 1:
+            shutil.copyfile(image_name, result_path + 'Dog/' + name)
+        else:
+            shutil.copyfile(image_name, result_path + 'Cat/' + name)
+
+
+def loader(image_name, input_size):
+    """
+    function：将图片转化为可测试的tensor类型
+    :param imagepath: 要测试的图片路径
+    :return: 图片的tensor值
+    """
+    loader = torchvision.transforms.Compose([
+        transforms.Resize(input_size),
+        transforms.CenterCrop(input_size),
+        transforms.ToTensor(),
+        transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
+    ])
+    # loader使用torchvision中自带的transforms函数
+
+    image = Image.open(image_name).convert('RGB')
+    image = loader(image).unsqueeze(0)
+    return image.to(torch.float)
+
+if __name__ == '__main__':
+    print(loader("./Dog_Cat/test/"))

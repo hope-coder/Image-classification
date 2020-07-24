@@ -47,7 +47,7 @@ if function == 'resnet':
     model_name = "resnet"
     num_classes = 2
     feature_extract = True
-    model, input_size = resnet.initialize_model('resnet', 2, False, use_pretrained=False)
+    model, input_size = resnet.initialize_model('resnet', 2, feature_extract, use_pretrained=True)
     print("Params to learn:")
     if feature_extract:
         params_to_update = []
@@ -84,7 +84,9 @@ if function == 'resnet':
     dataloaders_dict = {
         x: torch.utils.data.DataLoader(image_datasets[x], batch_size=batch_size, shuffle=True, num_workers=0) for x in
         ['train', 'val']}
-    model, acc = resnet.train_model(model, dataloaders_dict, criterion, optimizer_ft, 10)
+    model, acc = resnet.train_model(model, dataloaders_dict, criterion, optimizer_ft, 2)
+    # 测试部分，需要将待测试的图片放在'Dog_Cat/test'文件夹内
+    resnet.work_model(model, data_dir, input_size)
     x = []
     y = []
     for index, acc in enumerate(acc):
