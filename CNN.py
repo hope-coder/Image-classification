@@ -35,7 +35,7 @@ class Net(nn.Module):
         x = x.view(-1, 53 * 53 * 50)  # x = (N,4*4*50)
         x = F.relu(self.fc1(x))  # x = (N,4*4*50)*(4*4*50, 500)=(N,500)
         x = self.fc2(x)  # x = (N,500)*(500, 10)=(N,10)
-        return x # 带log的softmax分类，每张图片返回10个概率
+        return x  # 带log的softmax分类，每张图片返回10个概率
 
 
 def train(model, train_loader, optimizer, epoch, log_interval=1):

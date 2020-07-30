@@ -11,6 +11,12 @@ from torchvision import transforms
 
 
 def set_parameter_requires_grad(model, feature_extracting):
+    """
+    该函数用于将模型所有的梯度改为不可变
+    :param model:要修改的模型
+    :param feature_extracting:是否要改为不可变
+    :return:
+    """
     if feature_extracting:
         for param in model.parameters():
             param.requires_grad = False
@@ -101,6 +107,13 @@ def test_model(model, dataloaders, criterion, epoch):
     return epoch_loss, epoch_acc
 
 def work_model(model, data_dir, input_size):
+    """
+    使用已经训练好的模型对图片进行分类
+    :param model: 已经训练好的模型
+    :param data_dir: 项目路径
+    :param input_size: 图片输入的大小
+    :return:
+    """
     result_path = data_dir + '/result/'
     if os.path.exists(result_path):
         shutil.rmtree(result_path)
